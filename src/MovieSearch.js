@@ -3,6 +3,7 @@ import axios from 'axios';
 import Movie from './Movie.js';
 import JwPagination from 'jw-react-pagination';
 import Pagination from "react-js-pagination";
+import debounce from 'lodash/debounce';
 const apiKey = "403ffcb3b4481da342203f94fb6e937e";
 
 export default class MovieSearch extends Component{
@@ -16,15 +17,18 @@ export default class MovieSearch extends Component{
       totalItemsCount: 0
     }
     this.onSearchChange = this.onSearchChange.bind(this);
-    this.handlePageChange = this.handlePageChange.bind(this);
+    this.updateResults = debounce(this.updateResults, 1000);
   }
   onSearchChange(e){
     this.setState({
       searchTitle: e.target.value,
       loader: true
     });
-    if (e.target.value !== "") {
-      let url = `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${e.target.value}`;
+    this.updateResults(e.target.value);
+  }
+  updateResults = (value) => {
+    if (value !== "") {
+      let url = `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${value}`;
       axios.get(url)
       .then(data => {
         console.log('data: ', data.data);
@@ -46,10 +50,9 @@ export default class MovieSearch extends Component{
       })
     }
   }
-  handlePageChange(){
+  handlePageChange = () => {
     let page = this.state.activePage + 1;
     let url = `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${this.state.searchTitle}&page=${page}`;
-    console.log('url: ', url);
     axios.get(url)
     .then(data => {
       console.log('data: ', data.data);
